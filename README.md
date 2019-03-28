@@ -1,4 +1,3 @@
-# uni-fast-algoriths
-Project for the course in Fast algorithms
+# Project for the course Fast algorithms
 
-Making a suffix automaton with minimum required memory
+Suffix automaton written in cpp, which allocates 500MB~ memory per 10 million character string
