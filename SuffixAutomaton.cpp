@@ -9,9 +9,9 @@ public:
 		input = new char[Size + 1];
 		input[Size] = 0;
 
-		length = new int[Size * 2];
+		length = new int[Size];
 		slink = new int[Size * 2];
-		
+
 		linkedChar = new char[Size * 3];
 		for (int i = 0; i < Size * 3; i++) { linkedChar[i] = 0; }
 		linkedIndex = new int[Size * 3];
@@ -22,20 +22,18 @@ public:
 		linkIt = Size * 3 - 1;
 		stateSecIt = Size;
 		stateMainIt = 0;
-		length[0] = 0;
 		slink[0] = -1;
 	}
 	void Add(char C) {
 		input[stateMainIt] = C;
 		stateMainIt++;
-		length[stateMainIt] = stateMainIt;
 		int u = FindStem(C);
 		if (u == -1) {
 			slink[stateMainIt] = 0;
 			return;
 		}
 		int v = getTransition(u, C);
-		if (length[v] == length[u] + 1) {
+		if (getLength(v) == getLength(u) + 1) {
 			slink[stateMainIt] = v;
 			return;
 		}
@@ -60,25 +58,25 @@ public:
 	int GetNumberOfVV() {
 		return countPrefixVV() + countAltStateVV() + 1;
 	}
-	// bool Find(string input) {
-	//	int state = 0;
-	//	for (int i = 0; i < input.size(); i++) {
-	//		int next = GetTransition(state, input[i]);
-	//		if (next == -1) {
-	//			return false;
-	//		}
-	//		state = next;
-	//	}
-	//	return true;
-	//}
+	bool Find(string input) {
+		int state = 0;
+		for (int i = 0; i < input.size(); i++) {
+			int next = getTransition(state, input[i]);
+			if (next == -1) {
+				return false;
+			}
+			state = next;
+		}
+		return true;
+	}
 private:
-	int size;
+	int size;			// Length of string
 	int stateMainIt;	// Points current
 	int stateSecIt;		// Points current
 	int linkIt;			// Points empty
 	char* input;		// x1
 	int* start;			// x1
-	int* length;		// x2
+	int* length;		// x1
 	int* slink;			// x2
 	char* linkedChar;	// x3
 	int* linkedIndex;	// x3
@@ -88,10 +86,10 @@ private:
 		int count = 0;
 		for (int i = 2; i <= stateMainIt; i += 2) {
 			int iter = slink[i];
-			while (length[iter] > (i >> 1)) {
+			while (getLength(iter) > (i >> 1)) {
 				iter = slink[iter];
 			}
-			if (length[iter] == (i >> 1) && iter < stateMainIt) {
+			if (getLength(iter) == (i >> 1) && iter < stateMainIt) {
 				count++;
 			}
 		}
@@ -100,56 +98,20 @@ private:
 	int countAltStateVV() {
 		int count = 0;
 		for (int i = size + 1; i <= stateSecIt; i++) {
-			if (length[i] < (size >> 1)) {
-				int found = find(getStart(i), length[i], i);
-				if (found > 0 && length[found] == (length[i] << 1)) {
+			if (getLength(i) < (size >> 1)) {
+				int found = find(getStart(i), getLength(i), i);
+				if (found > 0 && getLength(found) == (getLength(i) << 1)) {
 					count++;
 				}
 			}
 		}
 		return count;
 	}
-	//void PrintState(int index) {
-	//	for (int j = 0; j < length[index]; j++) {
-	//		cout << input[j + getStart(index)];
-	//	}
-	//	cout << endl;
-	//}
-	//void PrintStateFull(int index) {
-	//	cout << "State index: " << index << endl;
-	//	cout << "State start: " << getStart(index) << endl;
-	//	cout << "State length: " << length[index] << endl;
-	//	cout << "State string: ";
-	//	for (int j = 0; j < length[index]; j++) {
-	//		cout << input[j + getStart(index)];
-	//	}
-	//	cout << endl;
-	//}
-	//int getLength(int index) {
-	//	if (index <= size)
-	//		return index;
-	//	return length[index];
-	//}
-	//int CountAltStateVVOld() {
-	//	int count = 0;
-	//	for (int i = size + 1; i <= stateSecIt; i++) {
-	//		if (length[i] < 2 || length[i] & 1) // Odd number or length 1 = skip
-	//			continue;
-	//		int iter = slink[i];
-	//		while (length[iter] > (length[i] >> 1)) {
-	//			iter = slink[iter];
-	//		}
-	//		if (length[iter] == (length[i] >> 1)){// && !isV[iter]) {
-	//			bool increased = false;
-	//			increased = find(getStart(iter), length[iter], iter);
-	//			if (increased) {
-	//				//isV[iter] = true;
-	//				count++;
-	//			}
-	//		}
-	//	}
-	//	return count;
-	//}
+	int getLength(int index) {
+		if (index <= size)
+			return index;
+		return length[index - size];
+	}
 	int find(int PosFrom, int Length, int StartState) {
 		for (; Length > 0; Length--) {
 			int next = getTransition(StartState, input[PosFrom]);
@@ -180,8 +142,8 @@ private:
 	int NewSlink(int U, char C) {
 		int v = getTransition(U, C);
 		stateSecIt++;
-		start[stateSecIt - size - 1] = stateMainIt - (length[U] + 1);
-		length[stateSecIt] = length[U] + 1;
+		start[stateSecIt - size - 1] = stateMainIt - (getLength(U) + 1);
+		length[stateSecIt - size] = getLength(U) + 1;
 		slink[stateSecIt] = slink[v];
 		slink[v] = stateSecIt;
 		slink[stateMainIt] = stateSecIt;
@@ -254,63 +216,9 @@ private:
 			return -1;
 	}
 };
-int main(int argc, char* argv[]) {
-	std::ios_base::sync_with_stdio(false);
-
-	if (argc < 2) {
-		cout << "No file provided. Terminating program.";
-		return 1;
-	}
-	ifstream filesize(argv[1], ios::binary | ios::ate);
-	int Size = filesize.tellg();
-	filesize.close();
-	ifstream file(argv[1]);
-	if (!file.is_open()) {
-		cout << "Failed to open file. Terminating program.";
-		return 2;
-	}
-	char ch;
-	int i = 0;
-	SuffixAutomaton S(Size);
-	while (file.get(ch)) {
-		S.Add(ch);
-	}
-	cout << S.GetNumberOfStates() << ' ';
-	cout << S.GetNumberOfTransitions() << ' ';
-	cout << S.GetNumberOfTerminalStates() << ' ';
-	cout << S.GetNumberOfVV();
-}
-
-
-
-	/*
-	string input = "bbaacaa";
-	SuffixAutomaton S(input.size());
-	for (int i = 0; i < input.size(); i++) {
-		S.Add(input[i]);
-	}
-	//cout << S.CountAltStateVV();
-	ifstream filesize("alice.txt", ios::binary | ios::ate);
-	long long Size = filesize.tellg();
-	filesize.close();
-	ifstream file("alice.txt");
-	char ch;
-	SuffixAutomaton S(Size);
-	while (file.get(ch)) {
-		S.Add(ch);
-	}
-	cout << S.GetNumberOfStates() << ' ';
-	cout << S.GetNumberOfTransitions() << ' ';
-	cout << S.GetNumberOfTerminalStates() << ' ';
-	cout << S.GetNumberOfVV();
-	cout << endl;
-	
-	TestKos();
-	TestCounts();
-	TestVV();
-	*/
 
 /*
+
 void TestString(const string& input, int states, int links, int terminals) {
 	SuffixAutomaton S(input.size());
 	for (int i = 0; i < input.size(); i++) {
@@ -322,14 +230,14 @@ void TestString(const string& input, int states, int links, int terminals) {
 }
 
 void TestCounts() {
-		TestString("", 1, 0, 1);
-		TestString("b", 2, 1, 2);
-		TestString("aa", 3, 2, 3);
-		TestString("abcbc", 8, 9, 3);
-		TestString("bbacbba", 8, 10, 3);
-		TestString("bbacbbaa", 10, 14, 3);
-		TestString("cpalgorithmspageauthorssuffixautomatontableofcontentsdefinition", 88, 144, 4);
-		TestString("abcbcbcbcbcbcbcbc", 32, 33, 9);
+	TestString("", 1, 0, 1);
+	TestString("b", 2, 1, 2);
+	TestString("aa", 3, 2, 3);
+	TestString("abcbc", 8, 9, 3);
+	TestString("bbacbba", 8, 10, 3);
+	TestString("bbacbbaa", 10, 14, 3);
+	TestString("cpalgorithmspageauthorssuffixautomatontableofcontentsdefinition", 88, 144, 4);
+	TestString("abcbcbcbcbcbcbcbc", 32, 33, 9);
 }
 
 bool TestForVV(string input, int vv) {
@@ -359,31 +267,32 @@ void TestVV() {
 	cout << TestForVV("baacaaddeddeddedd", 4);
 }
 
-void TestKos() {
-	for (int i = 0; i < 1; i++) {
-		string input = "test100k/";
-		input.append(to_string(i));
-		input.append(".in");
-		ifstream filesize(input, ios::binary | ios::ate);
-		long long Size = filesize.tellg();
-		filesize.close();
-		ifstream file(input);
-		char ch;
-		SuffixAutomaton S(Size);
-		while (file.get(ch)) {
-			S.Add(ch);
-		}
-		string out = "test100k/";
-		out.append(to_string(i));
-		out.append(".in.out2");
-		ifstream outfile(out);
-		int num;
-		outfile >> num;
-		cout << S.GetNumberOfStates() << ' ';
-		cout << S.GetNumberOfTransitions() << ' ';
-		cout << S.GetNumberOfTerminalStates() << ' ';
-		cout << S.GetNumberOfVV() << ' ' << num;
-		cout << endl;
-	}
-}
 */
+
+int main(int argc, char* argv[]) {
+	std::ios_base::sync_with_stdio(false);
+
+	if (argc < 2) {
+		cout << "No file provided. Terminating program.";
+		return 1;
+	}
+	ifstream filesize(argv[1], ios::binary | ios::ate);
+	int Size = filesize.tellg();
+	filesize.close();
+	ifstream file(argv[1]);
+	if (!file.is_open()) {
+		cout << "Failed to open file. Terminating program.";
+		return 2;
+	}
+	char ch;
+	int i = 0;
+	SuffixAutomaton S(Size);
+	while (file.get(ch)) {
+		S.Add(ch);
+	}
+	cout << S.GetNumberOfStates() << ' ';
+	cout << S.GetNumberOfTransitions() << ' ';
+	cout << S.GetNumberOfTerminalStates() << ' ';
+	cout << S.GetNumberOfVV();
+
+}
