@@ -1,3 +1,3 @@
-# Project for the course Fast algorithms
+# Suffix automaton using the minimum possible memory
 
-Suffix automaton written in cpp, which allocates 500MB~ memory per 10 million character string
+Suffix automaton written in c++, which allocates 500MB~ memory per 10 million character string
