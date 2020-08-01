@@ -4,9 +4,10 @@ Memory efficient Suffix automaton in c++, which allocates 500MB~ memory per 10 m
 
 ## How to use
 ```c++
-  std::string fileName = "MyFile.txt";
+  	std::string fileName = "MyFile.txt";
+	
 	// First find file size (how many characters it has)
-  ifstream filesizeCheck(fileName, ios::binary | ios::ate);
+  	ifstream filesizeCheck(fileName, ios::binary | ios::ate);
 	int size = filesizeCheck.tellg();
 	filesizeCheck.close();
   
@@ -21,7 +22,7 @@ Memory efficient Suffix automaton in c++, which allocates 500MB~ memory per 10 m
 	SuffixAutomaton S(Size);
   
   // Read each character and add it to the automaton
-  char ch;
+  	char ch;
 	while (file.get(ch)) {
 		S.Add(ch);
 	}
